@@ -10,41 +10,140 @@ const getExerciseImage = (exercise) => {
   };
 
   const ExerciseCard = React.memo(({ exercise, index, onSelect }) => {
-    console.log('ExerciseCard rendering:', exercise?.name);
+    const cardColors = ['#fee4cb', '#e9e7fd', '#dbf6fd', '#fef3c7', '#ecfdf5'];
+    const cardColor = cardColors[index % cardColors.length];
+    
     return (
       <div 
-        className="project-box-wrapper"
-        style={{
-          opacity: 1,
-          transform: 'translateY(0)',
-          border: '2px solid red', // DEBUG: Make cards visible
-          margin: '10px',
-          minHeight: '200px',
-          backgroundColor: 'white'
+        className="exercise-card hover-scale" 
+        style={{ 
+          backgroundColor: cardColor,
+          borderRadius: 'var(--radius-2xl)',
+          padding: 'var(--space-5)',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          border: '1px solid var(--border-primary)',
+          boxShadow: 'var(--shadow-sm)',
+          height: 'fit-content'
         }}
+        onClick={() => onSelect && onSelect(exercise)}
       >
-        <div 
-          className="project-box exercise-card" 
-          style={{ 
-            backgroundColor: '#ffffff',
-            cursor: 'pointer',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            minHeight: '200px',
-            padding: '16px',
-            border: '1px solid #ccc'
-          }}
-          onClick={() => onSelect && onSelect(exercise)}
-        >
-          {/* Simple visible content */}
-          <h3 style={{ color: 'black', margin: '0 0 8px 0' }}>
-            {exercise?.name || 'No Name'}
+        <div className="exercise-header" style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start',
+          marginBottom: 'var(--space-4)'
+        }}>
+          <span style={{
+            fontSize: 'var(--text-xs)',
+            fontWeight: '600',
+            color: 'var(--text-primary)',
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            padding: 'var(--space-1) var(--space-2)',
+            borderRadius: 'var(--radius-lg)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }}>
+            {exercise?.bodyPart || exercise?.category || 'General'}
+          </span>
+          <button 
+            className="more-btn hover-scale"
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 'var(--space-1)',
+              borderRadius: 'var(--radius-md)',
+              cursor: 'pointer',
+              color: 'var(--text-secondary)',
+              transition: 'all 0.2s ease'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="12" cy="5" r="1" />
+              <circle cx="12" cy="19" r="1" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className="exercise-content" style={{ marginBottom: 'var(--space-4)' }}>
+          <h3 style={{ 
+            fontSize: 'var(--text-lg)', 
+            fontWeight: '600', 
+            color: 'var(--text-primary)',
+            margin: '0 0 var(--space-1) 0',
+            lineHeight: '1.3'
+          }}>
+            {exercise?.name || 'Unnamed Exercise'}
           </h3>
-          <p style={{ color: 'gray', margin: '0 0 8px 0' }}>
-            {exercise?.bodyPart || exercise?.category || 'No Category'}
-          </p>
-          <p style={{ color: 'blue', margin: '0' }}>
+          <p style={{ 
+            fontSize: 'var(--text-sm)', 
+            color: 'var(--text-secondary)',
+            margin: '0 0 var(--space-3) 0'
+          }}>
             {exercise?.equipment || 'No Equipment'}
           </p>
+          
+          {exercise?.instructions && (
+            <p style={{ 
+              fontSize: 'var(--text-xs)', 
+              color: 'var(--text-secondary)', 
+              opacity: 0.8,
+              margin: '0',
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              lineHeight: '1.4'
+            }}>
+              {exercise.instructions.slice(0, 100)}...
+            </p>
+          )}
+        </div>
+        
+        <div className="exercise-footer" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingTop: 'var(--space-3)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.3)'
+        }}>
+          <div className="exercise-tags">
+            {exercise?.target && (
+              <span className="exercise-tag" style={{ 
+                backgroundColor: getMuscleGroupColor(exercise.target),
+                color: 'white',
+                fontSize: 'var(--text-xs)',
+                fontWeight: '500',
+                padding: 'var(--space-1) var(--space-2)',
+                borderRadius: 'var(--radius-full)',
+                textTransform: 'capitalize'
+              }}>
+                {exercise.target}
+              </span>
+            )}
+          </div>
+          <button 
+            className="btn-secondary hover-scale" 
+            style={{ 
+              fontSize: 'var(--text-xs)',
+              fontWeight: '500',
+              padding: 'var(--space-1) var(--space-3)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid rgba(255, 255, 255, 0.5)',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect && onSelect(exercise);
+            }}
+          >
+            View Details
+          </button>
         </div>
       </div>
     );
@@ -363,8 +462,8 @@ const ExerciseLibrary = () => {
             <h2>{exercise.name}</h2>
             <button className="modal-close" onClick={onClose}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
           </div>
@@ -460,103 +559,264 @@ const ExerciseLibrary = () => {
   }
 
   return (
-    <div className="projects-section exercise-library">
+    <div className="main-content">
       {/* Header */}
-      <div className="projects-section-header">
+      <div className="content-header">
         <div>
-          <p>Exercise Library</p>
-          <p className="library-subtitle">Discover and explore exercises by muscle group</p>
+          <h1 className="content-title">
+            Exercise <span style={{ color: 'var(--brand-accent)' }}>Library</span>
+          </h1>
+          <p className="content-subtitle">Browse and manage exercises</p>
         </div>
-        <div className="header-actions">
-          <p className="time">{(state.totalExercises || 0).toLocaleString()} exercises available</p>
+        <div className="content-actions">
+          <button 
+            className="btn-primary hover-scale"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 'var(--space-2)',
+              padding: 'var(--space-3) var(--space-5)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: '600',
+              borderRadius: 'var(--radius-xl)',
+              border: 'none',
+              background: 'linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-primary) 100%)',
+              color: 'var(--text-inverse)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: 'var(--shadow-md)'
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Exercise
+          </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="projects-section-line">
-        <div className="projects-status">
-          <div className="item-status">
-            <span className="status-number">{state.filteredExercises.length}</span>
-            <span className="status-type">Showing</span>
-          </div>
-          <div className="item-status">
-            <span className="status-number">{state.categories.length}</span>
-            <span className="status-type">Muscle Groups</span>
-          </div>
-          <div className="item-status">
-            <span className="status-number">{state.equipment.length}</span>
-            <span className="status-type">Equipment Types</span>
+      {/* Stats Overview */}
+      <div className="stats-grid" style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+        gap: 'var(--space-5)',
+        marginBottom: 'var(--space-8)'
+      }}>
+        <div className="stat-card" style={{
+          background: 'linear-gradient(135deg, #fee4cb 0%, #f59e0b 100%)',
+          borderRadius: 'var(--radius-2xl)',
+          padding: 'var(--space-6)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ 
+              fontSize: 'var(--text-3xl)', 
+              fontWeight: '700', 
+              marginBottom: 'var(--space-1)',
+              color: 'var(--text-primary)'
+            }}>
+              {state.totalExercises}
+            </div>
+            <div style={{ 
+              fontSize: 'var(--text-sm)', 
+              fontWeight: '500',
+              color: 'var(--text-primary)',
+              opacity: 0.8
+            }}>
+              Total Exercises
+            </div>
           </div>
         </div>
         
-        <div className="view-actions">
-          <button 
-            className={`view-btn list-view ${state.viewMode === 'list' ? 'active' : ''}`} 
-            title="List View"
-            onClick={() => dispatch({ type: 'SET_VIEW_MODE', payload: 'list' })}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
-            </svg>
-          </button>
-          <button 
-            className={`view-btn grid-view ${state.viewMode === 'grid' ? 'active' : ''}`} 
-            title="Grid View"
-            onClick={() => dispatch({ type: 'SET_VIEW_MODE', payload: 'grid' })}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
-          </button>
+        <div className="stat-card" style={{
+          background: 'linear-gradient(135deg, #e9e7fd 0%, #8b5cf6 100%)',
+          borderRadius: 'var(--radius-2xl)',
+          padding: 'var(--space-6)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ 
+              fontSize: 'var(--text-3xl)', 
+              fontWeight: '700', 
+              marginBottom: 'var(--space-1)',
+              color: 'var(--text-primary)'
+            }}>
+              {state.categories.length}
+            </div>
+            <div style={{ 
+              fontSize: 'var(--text-sm)', 
+              fontWeight: '500',
+              color: 'var(--text-primary)',
+              opacity: 0.8
+            }}>
+              Categories
+            </div>
+          </div>
+        </div>
+        
+        <div className="stat-card" style={{
+          background: 'linear-gradient(135deg, #dbf6fd 0%, #06b6d4 100%)',
+          borderRadius: 'var(--radius-2xl)',
+          padding: 'var(--space-6)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ 
+              fontSize: 'var(--text-3xl)', 
+              fontWeight: '700', 
+              marginBottom: 'var(--space-1)',
+              color: 'var(--text-primary)'
+            }}>
+              {state.muscles.length}
+            </div>
+            <div style={{ 
+              fontSize: 'var(--text-sm)', 
+              fontWeight: '500',
+              color: 'var(--text-primary)',
+              opacity: 0.8
+            }}>
+              Muscle Groups
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="controls-section" style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: 'var(--space-6)',
+        gap: 'var(--space-4)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <div className="view-toggle" style={{ display: 'flex', gap: 'var(--space-1)' }}>
+            <button 
+              className={`view-btn hover-scale ${state.viewMode === 'list' ? 'active' : ''}`}
+              title="List View"
+              onClick={() => dispatch({ type: 'SET_VIEW_MODE', payload: 'list' })}
+              style={{
+                padding: 'var(--space-2)',
+                border: '1px solid var(--border-primary)',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: state.viewMode === 'list' ? 'var(--brand-accent)' : 'var(--surface-primary)',
+                color: state.viewMode === 'list' ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </button>
+            <button 
+              className={`view-btn hover-scale ${state.viewMode === 'grid' ? 'active' : ''}`}
+              title="Grid View"
+              onClick={() => dispatch({ type: 'SET_VIEW_MODE', payload: 'grid' })}
+              style={{
+                padding: 'var(--space-2)',
+                border: '1px solid var(--border-primary)',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: state.viewMode === 'grid' ? 'var(--brand-accent)' : 'var(--surface-primary)',
+                color: state.viewMode === 'grid' ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <FilterBar 
-        categories={state.categories}
-        muscles={state.muscles}
-        equipment={state.equipment}
-        onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
-        initialFilters={state.filters}
-      />
+      <div style={{ marginBottom: 'var(--space-6)' }}>
+        <FilterBar 
+          categories={state.categories}
+          muscles={state.muscles}
+          equipment={state.equipment}
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+          initialFilters={state.filters}
+        />
+      </div>
 
       {/* Exercise Grid */}
-      <div className={`project-boxes exercise-grid ${state.viewMode === 'grid' ? 'jsGridView' : 'jsListView'}`}>
-        {console.log('Rendering exercises:', state.filteredExercises.length, state.filteredExercises.slice(0,2))}
+      <div className={`exercises-grid ${state.viewMode === 'grid' ? 'grid-view' : 'list-view'}`} style={{
+        display: 'grid',
+        gridTemplateColumns: state.viewMode === 'grid' ? 'repeat(auto-fill, minmax(300px, 1fr))' : '1fr',
+        gap: 'var(--space-5)',
+        marginBottom: 'var(--space-8)'
+      }}>
         {state.filteredExercises.length > 0 ? (
-          state.filteredExercises.map((exercise, index) => {
-            console.log('Rendering exercise:', exercise.name, exercise.id);
-            return (
-              <ExerciseCard 
-                key={exercise.id || `exercise-${index}`}
-                exercise={exercise} 
-                index={index}
-                onSelect={(exercise) => dispatch({ type: 'SET_SELECTED_EXERCISE', payload: exercise })} 
-              />
-            );
-          })
+          state.filteredExercises.map((exercise, index) => (
+            <ExerciseCard 
+              key={exercise.id || `exercise-${index}`}
+              exercise={exercise} 
+              index={index}
+              onSelect={(exercise) => dispatch({ type: 'SET_SELECTED_EXERCISE', payload: exercise })} 
+            />
+          ))
         ) : (
-          <div className="empty-state">
-            <div className="empty-icon">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <div className="empty-state" style={{ 
+            gridColumn: '1 / -1',
+            textAlign: 'center', 
+            padding: 'var(--space-16) var(--space-5)',
+            backgroundColor: 'var(--surface-primary)',
+            borderRadius: 'var(--radius-2xl)',
+            border: '1px solid var(--border-primary)'
+          }}>
+            <div className="empty-icon" style={{ marginBottom: 'var(--space-4)' }}>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5">
                 <path d="M6.2 5h12l-2.5 7H8.7z"/>
                 <path d="M21 5H6"/>
                 <path d="M7 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/>
                 <path d="M6 5v2a6 6 0 0 0 12 0V5"/>
               </svg>
             </div>
-            <h3>No exercises found</h3>
-            <p>Try adjusting your search terms or filters to find more exercises.</p>
-            <button onClick={handleClearFilters} className="btn-primary">
+            <h3 style={{ 
+              fontSize: 'var(--text-xl)', 
+              fontWeight: '600', 
+              color: 'var(--text-primary)',
+              margin: '0 0 var(--space-2) 0'
+            }}>No exercises found</h3>
+            <p style={{ 
+              color: 'var(--text-secondary)', 
+              marginBottom: 'var(--space-6)',
+              fontSize: 'var(--text-sm)'
+            }}>Try adjusting your search terms or filters to find more exercises.</p>
+            <button 
+              onClick={handleClearFilters} 
+              className="btn-primary hover-scale"
+              style={{
+                padding: 'var(--space-3) var(--space-5)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: '600',
+                borderRadius: 'var(--radius-xl)',
+                border: 'none',
+                background: 'linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-primary) 100%)',
+                color: 'var(--text-inverse)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
               Clear Filters
             </button>
           </div>

@@ -1,322 +1,314 @@
 import React, { useState, useEffect } from 'react';
-import ApiClient from '../utils/api';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Users,
+  Dumbbell,
+  BarChart3,
+  MessageSquare,
+  Settings,
+  Home,
+  Search,
+  Bell,
+  User,
+  LogOut,
+  Menu,
+  X,
+  Zap,
+  Calendar,
+  TrendingUp
+} from 'lucide-react';
+import { useAuth } from '../utils/AuthContext';
+import { useNotification } from '../utils/NotificationContext';
+import TrainerMainContent from './TrainerMainContent';
 
 const TrainerDashboard = () => {
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [clients, setClients] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [activeSection, setActiveSection] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notifications, setNotifications] = useState(3);
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuth();
+  const { showSuccess } = useNotification();
 
-  // Fetch real data from backend
   useEffect(() => {
-    fetchClients();
-  }, []);
+    // Update active section based on current route
+    const path = location.pathname.split('/')[2] || 'dashboard';
+    setActiveSection(path);
+  }, [location]);
 
-  const fetchClients = async () => {
-    try {
-      setIsLoading(true);
-      const clientsData = await ApiClient.getClients('active');
-      
-      // Transform backend data to match UI format
-      const transformedClients = clientsData.map((client, index) => {
-        const colors = [
-          { bg: '#fee4cb', progress: '#ff942e' },
-          { bg: '#e9e7fd', progress: '#4f3ff0' },
-          { bg: '#c8f7dc', progress: '#34c471' },
-          { bg: '#ffd3e2', progress: '#df3670' },
-          { bg: '#d5deff', progress: '#4067f9' }
-        ];
-        const colorSet = colors[index % colors.length];
-        
-        return {
-          id: client.id,
-          name: client.name,
-          program: getClientProgram(client),
-          progress: getClientProgress(client),
-          startDate: formatDate(new Date()),
-          status: client.archived ? 'archived' : 'active',
-          nextSession: getNextSession(),
-          avatar: getAvatarUrl(client.name, index),
-          trainer: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=20&h=20&q=80',
-          backgroundColor: colorSet.bg,
-          progressColor: colorSet.progress
-        };
-      });
-      
-      setClients(transformedClients);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching clients:', err);
-      setError('Failed to load clients');
-      // Fallback to mock data if backend is unavailable
-      loadMockData();
-    } finally {
-      setIsLoading(false);
+  const sidebarItems = [
+    {
+      section: 'main',
+      title: 'Main',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/trainer', color: 'from-blue-500 to-blue-600' },
+        { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/trainer/analytics', color: 'from-purple-500 to-purple-600' },
+        { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/trainer/calendar', color: 'from-green-500 to-green-600' },
+      ]
+    },
+    {
+      section: 'management',
+      title: 'Management',
+      items: [
+        { id: 'clients', label: 'Clients', icon: Users, path: '/trainer/clients', color: 'from-indigo-500 to-indigo-600' },
+        { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/trainer/messages', color: 'from-pink-500 to-pink-600', badge: 5 },
+      ]
+    },
+    {
+      section: 'library',
+      title: 'Library',
+      items: [
+        { id: 'exercises', label: 'Exercises', icon: Dumbbell, path: '/trainer/exercises', color: 'from-orange-500 to-orange-600' },
+        { id: 'workouts', label: 'Workouts', icon: Zap, path: '/trainer/workouts', color: 'from-yellow-500 to-yellow-600' },
+      ]
+    }
+  ];
+
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    showSuccess('Successfully logged out', 'See you soon!');
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Implement search functionality
+      console.log('Searching for:', searchQuery);
     }
   };
-
-  const loadMockData = () => {
-    const mockClients = [
-      {
-        id: 1,
-        name: 'Sarah Johnson',
-        program: 'Weight Loss',
-        progress: 75,
-        startDate: 'Dec 1, 2024',
-        status: 'active',
-        nextSession: '2 Days',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=40&h=40&q=80',
-        trainer: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=20&h=20&q=80',
-        backgroundColor: '#fee4cb',
-        progressColor: '#ff942e'
-      },
-      {
-        id: 2,
-        name: 'Mike Chen',
-        program: 'Muscle Building',
-        progress: 60,
-        startDate: 'Nov 15, 2024',
-        status: 'active',
-        nextSession: '1 Day',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=40&h=40&q=80',
-        trainer: 'https://images.unsplash.com/photo-1583195764036-6dc248ac07d9?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=20&h=20&q=80',
-        backgroundColor: '#e9e7fd',
-        progressColor: '#4f3ff0'
-      },
-      {
-        id: 3,
-        name: 'Emma Davis',
-        program: 'Athletic Performance',
-        progress: 85,
-        startDate: 'Oct 20, 2024',
-        status: 'active',
-        nextSession: '3 Days',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b4c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=40&h=40&q=80',
-        trainer: 'https://images.unsplash.com/photo-1596815064285-45ed8a9c0463?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=20&h=20&q=80',
-        backgroundColor: '#c8f7dc',
-        progressColor: '#34c471'
-      },
-      {
-        id: 4,
-        name: 'Alex Rodriguez',
-        program: 'Rehabilitation',
-        progress: 40,
-        startDate: 'Dec 5, 2024',
-        status: 'active',
-        nextSession: '1 Day',
-        avatar: 'https://images.unsplash.com/photo-1600486913747-55e5470d6f40?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=40&h=40&q=80',
-        trainer: 'https://images.unsplash.com/photo-1587628604439-3b9a0aa7a163?ixid=MXwxMjA3fDB8MHxzZWFyY2h8MjR8fHdvbWFufGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=20&h=20&q=80',
-        backgroundColor: '#ffd3e2',
-        progressColor: '#df3670'
-      },
-      {
-        id: 5,
-        name: 'Jordan Taylor',
-        program: 'Endurance Training',
-        progress: 70,
-        startDate: 'Nov 8, 2024',
-        status: 'active',
-        nextSession: '4 Days',
-        avatar: 'https://images.unsplash.com/photo-1583195764036-6dc248ac07d9?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=40&h=40&q=80',
-        trainer: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=20&h=20&q=80',
-        backgroundColor: '#d5deff',
-        progressColor: '#4067f9'
-      }
-    ];
-    setClients(mockClients);
-  };
-
-  // Helper functions
-  const getClientProgram = (client) => {
-    if (client.goals) {
-      if (client.goals.toLowerCase().includes('weight loss')) return 'Weight Loss';
-      if (client.goals.toLowerCase().includes('muscle') || client.goals.toLowerCase().includes('strength')) return 'Muscle Building';
-      if (client.goals.toLowerCase().includes('athletic') || client.goals.toLowerCase().includes('performance')) return 'Athletic Performance';
-      if (client.goals.toLowerCase().includes('rehab')) return 'Rehabilitation';
-      if (client.goals.toLowerCase().includes('endurance') || client.goals.toLowerCase().includes('cardio')) return 'Endurance Training';
-    }
-    return 'General Fitness';
-  };
-
-  const getClientProgress = (client) => {
-    // Calculate progress based on client data (simplified)
-    const factors = [];
-    if (client.workout_frequency) factors.push(Math.min(client.workout_frequency * 10, 40));
-    if (client.age) factors.push(client.age < 30 ? 30 : client.age < 50 ? 25 : 20);
-    factors.push(Math.random() * 40 + 20); // Random baseline
-    
-    const average = factors.reduce((a, b) => a + b, 0) / factors.length;
-    return Math.min(Math.max(Math.round(average), 10), 95);
-  };
-
-  const getNextSession = () => {
-    const options = ['1 Day', '2 Days', '3 Days', '4 Days', '1 Week'];
-    return options[Math.floor(Math.random() * options.length)];
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
-  };
-
-  const getAvatarUrl = (name, index) => {
-    // Use a more reliable avatar service to avoid CORS issues
-    const colors = ['FF6B6B', '4ECDC4', '45B7D1', 'FFA07A', '98D8C8'];
-    const color = colors[index % colors.length];
-    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
-    return `https://ui-avatars.com/api/?name=${initials}&background=${color}&color=fff&size=40&rounded=true&bold=true`;
-  };
-
-  const handleViewChange = (mode) => {
-    setViewMode(mode);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="projects-section">
-        <div className="projects-section-header">
-          <p>Clients</p>
-          <p className="time">Loading...</p>
-        </div>
-        <div className="card text-center py-12">
-          <div className="skeleton" style={{ width: '200px', height: '20px', borderRadius: '10px', margin: '0 auto' }}></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="projects-section">
-        <div className="projects-section-header">
-          <p>Clients</p>
-          <p className="time">Error</p>
-        </div>
-        <div className="card text-center py-12">
-          <p className="text-red-500">{error}</p>
-          <button 
-            onClick={fetchClients}
-            className="btn-primary mt-4"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="projects-section">
-      <div className="projects-section-header">
-        <p>Clients</p>
-        <p className="time">December, 12</p>
-      </div>
-      
-      <div className="projects-section-line">
-        <div className="projects-status">
-          <div className="item-status">
-            <span className="status-number">{clients.length}</span>
-            <span className="status-type">Active Clients</span>
-          </div>
-          <div className="item-status">
-            <span className="status-number">{Math.floor(clients.length * 0.3)}</span>
-            <span className="status-type">New This Week</span>
-          </div>
-          <div className="item-status">
-            <span className="status-number">{clients.length * 3}</span>
-            <span className="status-type">Total Sessions</span>
-          </div>
-        </div>
-        
-        <div className="view-actions">
-          <button 
-            className={`view-btn list-view ${viewMode === 'list' ? 'active' : ''}`} 
-            title="List View"
-            onClick={() => handleViewChange('list')}
+    <div className="min-h-screen bg-gradient-to-br from-primary-bg via-accent-bg to-primary-bg flex">
+      {/* Sidebar */}
+      <motion.aside
+        initial={{ x: -300, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className={`relative z-20 transition-all duration-300 ${
+          sidebarCollapsed ? 'w-20' : 'w-72'
+        }`}
+      >
+        <div className="h-full glass-card rounded-none rounded-r-3xl border-l-0 border-y-0 p-6 flex flex-col">
+          {/* Brand Section */}
+          <motion.div
+            className="flex items-center gap-4 mb-8 pb-6 border-b border-border-light"
+            layout
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-list">
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
-            </svg>
-          </button>
-          <button 
-            className={`view-btn grid-view ${viewMode === 'grid' ? 'active' : ''}`} 
-            title="Grid View"
-            onClick={() => handleViewChange('grid')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-grid">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
-          </button>
-        </div>
-      </div>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg">
+              <Dumbbell className="w-6 h-6 text-white" />
+            </div>
+            {!sidebarCollapsed && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h2 className="text-xl font-bold text-display bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+                  FitPortal
+                </h2>
+                <p className="text-sm text-text-muted">Trainer Portal</p>
+              </motion.div>
+            )}
+          </motion.div>
 
-      <div className={`project-boxes ${viewMode === 'grid' ? 'jsGridView' : 'jsListView'}`}>
-        {clients.map((client) => (
-          <div key={client.id} className="project-box-wrapper">
-            <div className="project-box" style={{ backgroundColor: client.backgroundColor }}>
-              <div className="project-box-header">
-                <span>{client.startDate}</span>
-                <div className="more-wrapper">
-                  <button className="project-btn-more">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-more-vertical">
-                      <circle cx="12" cy="12" r="1" />
-                      <circle cx="12" cy="5" r="1" />
-                      <circle cx="12" cy="19" r="1" />
-                    </svg>
-                  </button>
-                </div>
+          {/* Navigation Sections */}
+          <nav className="flex-1 space-y-6">
+            {sidebarItems.map((section, sectionIndex) => (
+              <motion.div
+                key={section.section}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: sectionIndex * 0.1 + 0.3 }}
+              >
+                {!sidebarCollapsed && (
+                  <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
+                    {section.title}
+                  </h3>
+                )}
+                <ul className="space-y-2">
+                  {section.items.map((item, itemIndex) => {
+                    const Icon = item.icon;
+                    const isActive = activeSection === item.id;
+                    
+                    return (
+                      <motion.li
+                        key={item.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: (sectionIndex * section.items.length + itemIndex) * 0.05 + 0.4 }}
+                      >
+                        <motion.button
+                          onClick={() => handleNavigation(item.path)}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${
+                            isActive
+                              ? 'bg-gradient-to-r ' + item.color + ' text-white shadow-lg'
+                              : 'text-text-secondary hover:text-text-primary hover:bg-hover-bg'
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          title={sidebarCollapsed ? item.label : ''}
+                        >
+                          {/* Shimmer effect for active item */}
+                          {isActive && (
+                            <motion.div
+                              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                              animate={{ x: ['-100%', '100%'] }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            />
+                          )}
+                          
+                          <div className={`relative z-10 ${
+                            isActive ? 'text-white' : 'text-text-secondary group-hover:text-brand-primary'
+                          }`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          
+                          {!sidebarCollapsed && (
+                            <>
+                              <span className="font-medium relative z-10">{item.label}</span>
+                              {item.badge && (
+                                <motion.span
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="ml-auto bg-brand-accent text-white text-xs px-2 py-1 rounded-full font-semibold relative z-10"
+                                >
+                                  {item.badge}
+                                </motion.span>
+                              )}
+                            </>
+                          )}
+                        </motion.button>
+                      </motion.li>
+                    );
+                  })}
+                </ul>
+              </motion.div>
+            ))}
+          </nav>
+
+          {/* User Profile Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="pt-6 border-t border-border-light"
+          >
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-secondary-bg to-accent-bg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
               </div>
-              
-              <div className="project-box-content-header">
-                <p className="box-content-header">{client.name}</p>
-                <p className="box-content-subheader">{client.program}</p>
-              </div>
-              
-              <div className="box-progress-wrapper">
-                <p className="box-progress-header">Progress</p>
-                <div className="box-progress-bar">
-                  <span 
-                    className="box-progress" 
-                    style={{ 
-                      width: `${client.progress}%`, 
-                      backgroundColor: client.progressColor 
-                    }}
-                  ></span>
+              {!sidebarCollapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-text-primary truncate">
+                    {user?.name || 'Dr. Sarah Wilson'}
+                  </p>
+                  <p className="text-sm text-text-muted truncate">
+                    {user?.role || 'Fitness Trainer'}
+                  </p>
                 </div>
-                <p className="box-progress-percentage">{client.progress}%</p>
-              </div>
-              
-              <div className="project-box-footer">
-                <div className="participants">
-                  <img src={client.avatar} alt="client" />
-                  <img src={client.trainer} alt="trainer" />
-                  <button className="add-participant" style={{ color: client.progressColor }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="days-left" style={{ color: client.progressColor }}>
-                  {client.nextSession} Left
-                </div>
+              )}
+              <motion.button
+                onClick={handleLogout}
+                className="p-2 rounded-lg hover:bg-error/10 text-text-muted hover:text-error transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </motion.aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <motion.header
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="glass-card rounded-none border-x-0 border-t-0 p-6 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <motion.button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="p-2 rounded-lg hover:bg-hover-bg transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {sidebarCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
+            </motion.button>
+            
+            <form onSubmit={handleSearch} className="relative">
+              <div className="input-group max-w-md">
+                <Search className="input-icon w-5 h-5" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search clients, workouts, exercises..."
+                  className="input pl-12 bg-secondary-bg/50"
+                />
+                </svg>
+                <span className="sidebar-link-text">Client Management</span>
+              </Link>
+            </div>
+            
+            <div className="nav-section">
+              <div className="nav-section-title">Library</div>
+              <Link to="/trainer/exercises" className={`app-sidebar-link ${location.pathname === '/trainer/exercises' ? 'active' : ''}`}>
+                <svg className="sidebar-link-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6.5 6.5 11 11"/>
+                  <path d="m21 21-1-1"/>
+                  <path d="m3 3 1 1"/>
+                  <path d="m18 22 4-4"/>
+                  <path d="m2 6 4-4"/>
+                  <path d="m3 10 7-7"/>
+                  <path d="m14 21 7-7"/>
+                </svg>
+                <span className="sidebar-link-text">Exercise Library</span>
+              </Link>
+              <Link to="/trainer/workouts" className={`app-sidebar-link ${location.pathname === '/trainer/workouts' ? 'active' : ''}`}>
+                <svg className="sidebar-link-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="3" height="18" x="3" y="4" rx="2"/>
+                  <rect width="3" height="18" x="12" y="4" rx="2"/>
+                  <path d="M8 22V4"/>
+                  <path d="M16 22V4"/>
+                </svg>
+                <span className="sidebar-link-text">Workout Builder</span>
+              </Link>
+            </div>
+          </div>
+          
+          <div className="sidebar-footer">
+            <div className="sidebar-user">
+              <div className="sidebar-user-avatar">T</div>
+              <div className="sidebar-user-info">
+                <h4>Trainer</h4>
+                <p>Professional</p>
               </div>
             </div>
           </div>
-        ))}
+        </nav>
+
+        {/* The main content is now handled by TrainerMainContent, which contains the nested routes */}
+        <TrainerMainContent renderDashboard={renderDashboard} />
+
+        <div className={`messages-section ${showMessages ? 'show' : ''}`}>
+           {/* ... (messages section remains the same) ... */}
+        </div>
       </div>
     </div>
   );
-};
+}
 
-export default TrainerDashboard; 
+export default TrainerDashboard;

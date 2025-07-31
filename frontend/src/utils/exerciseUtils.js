@@ -284,7 +284,7 @@ export const formatInstructions = (instructions) => {
     } catch (e) {
       // Not JSON, split by newlines or periods
       return instructions
-        .split(/[\n.]/)
+        .split(/[\n\.]/)
         .map(step => step.trim())
         .filter(step => step && step.length > 5); // Filter out very short fragments
     }

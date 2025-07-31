@@ -66,91 +66,168 @@ const ClientManagement = ({ onSelectClient, onCreateClient }) => {
 
   const ClientCard = ({ client }) => (
     <div className="project-box-wrapper">
-      <div className="project-box" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-        <div className="project-box-header">
-          <div className="client-avatar">
+      <div className="project-box hover-scale" style={{ 
+        backgroundColor: '#ffffff', 
+        border: '1px solid #e5e7eb',
+        borderRadius: '16px',
+        padding: '20px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        transition: 'all 0.2s ease'
+      }}>
+        <div className="project-box-header" style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start',
+          marginBottom: '16px'
+        }}>
+          <div className="client-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div 
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${getClientAvatarColor(client.name)}`}
+              className="client-avatar"
               style={{ 
-                backgroundColor: getClientAvatarColor(client.name).replace('bg-', ''),
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
+                width: '48px',
+                height: '48px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',
-                fontWeight: 'bold'
+                fontWeight: '600',
+                fontSize: '18px',
+                flexShrink: 0
               }}
             >
               {client.name.charAt(0).toUpperCase()}
             </div>
+            <div>
+              <h3 style={{ 
+                margin: 0, 
+                fontSize: '16px', 
+                fontWeight: '600', 
+                color: '#1f2937',
+                lineHeight: '1.4'
+              }}>
+                {client.name}
+              </h3>
+              <p style={{ 
+                margin: '2px 0 0 0', 
+                fontSize: '14px', 
+                color: '#6b7280',
+                lineHeight: '1.4'
+              }}>
+                {client.email}
+              </p>
+            </div>
           </div>
-          <div className="more-wrapper">
-            <button className="project-btn-more">
+          <div className="more-wrapper" style={{ position: 'relative' }}>
+            <button className="project-btn-more hover-scale" style={{
+              background: 'none',
+              border: 'none',
+              padding: '8px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              color: '#6b7280',
+              transition: 'all 0.2s ease'
+            }}>
               <MoreVertical size={16} />
             </button>
-            <div className="more-list" style={{ display: 'none' }}>
-              <button onClick={() => onSelectClient(client.id)}>
-                <Eye size={14} /> View Dashboard
-              </button>
-              <button onClick={() => console.log('Edit client', client.id)}>
-                <Edit size={14} /> Edit Details
-              </button>
-              <button onClick={() => handleArchiveClient(client.id)}>
-                <Archive size={14} /> {client.archived ? 'Unarchive' : 'Archive'}
-              </button>
+          </div>
+        </div>
+        
+        <div className="client-stats" style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1fr 1fr', 
+          gap: '12px',
+          marginTop: '16px',
+          paddingTop: '16px',
+          borderTop: '1px solid #f3f4f6'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              fontSize: '18px', 
+              fontWeight: '600', 
+              color: '#1f2937',
+              marginBottom: '2px'
+            }}>
+              {client.workouts_completed || 0}
+            </div>
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#6b7280',
+              fontWeight: '500'
+            }}>
+              Workouts Completed
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              fontSize: '18px', 
+              fontWeight: '600', 
+              color: '#1f2937',
+              marginBottom: '2px'
+            }}>
+              {client.current_weight ? `${client.current_weight}kg` : 'Not set'}
+            </div>
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#6b7280',
+              fontWeight: '500'
+            }}>
+              Current Weight
             </div>
           </div>
         </div>
         
-        <div className="project-box-content-header">
-          <h3 className="box-content-header">{client.name}</h3>
-          <p className="box-content-subheader">{client.email}</p>
-        </div>
-
-        <div className="client-stats" style={{ margin: '16px 0' }}>
-          <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>Workouts Completed</span>
-            <span style={{ fontSize: '12px', fontWeight: '600' }}>
-              {client.workout_count || 0}
-            </span>
-          </div>
-          <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>Current Weight</span>
-            <span style={{ fontSize: '12px', fontWeight: '600' }}>
-              {client.weight ? `${client.weight} kg` : 'Not set'}
-            </span>
-          </div>
-          <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>Goal</span>
-            <span style={{ fontSize: '12px', fontWeight: '600' }}>
-              {client.goals || 'Not set'}
-            </span>
-          </div>
-        </div>
-
-        <div className="project-box-footer">
-          <div className="participants">
-            <button 
-              className="btn-primary"
-              style={{ fontSize: '12px', padding: '6px 12px' }}
-              onClick={() => onSelectClient(client.id)}
-            >
-              <Users size={14} style={{ marginRight: '4px' }} />
-              View Client
-            </button>
-          </div>
-          <div className="days-left" style={{ 
-            backgroundColor: client.archived ? '#fee2e2' : '#dcfce7',
-            color: client.archived ? '#dc2626' : '#16a34a',
-            padding: '4px 8px',
-            borderRadius: '12px',
-            fontSize: '11px',
-            fontWeight: '600'
-          }}>
-            {client.archived ? 'Archived' : 'Active'}
-          </div>
+        <div className="client-actions" style={{ 
+          marginTop: '16px',
+          paddingTop: '16px',
+          borderTop: '1px solid #f3f4f6',
+          display: 'flex',
+          gap: '8px'
+        }}>
+          <button 
+            onClick={() => onSelectClient(client.id)}
+            className="btn-primary hover-scale"
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              fontSize: '13px',
+              fontWeight: '500',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}
+          >
+            <Eye size={14} />
+            View App
+          </button>
+          <button 
+            onClick={() => console.log('Edit client', client.id)}
+            className="btn-secondary hover-scale"
+            style={{
+              padding: '10px 12px',
+              fontSize: '13px',
+              fontWeight: '500',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              background: 'white',
+              color: '#6b7280',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Edit size={14} />
+          </button>
         </div>
       </div>
     </div>
@@ -182,76 +259,169 @@ const ClientManagement = ({ onSelectClient, onCreateClient }) => {
   }
 
   return (
-    <div className="projects-section">
+    <div className="main-content" style={{ 
+      padding: '24px 32px',
+      maxWidth: '100%',
+      margin: '0 auto'
+    }}>
       {/* Header */}
-      <div className="projects-section-header">
+      <div className="content-header" style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start',
+        marginBottom: '32px'
+      }}>
         <div>
-          <p>Client Management</p>
-          <p className="time">Manage your fitness clients</p>
+          <h1 style={{ 
+            fontSize: '32px', 
+            fontWeight: '700', 
+            color: '#1f2937',
+            margin: '0 0 8px 0',
+            lineHeight: '1.2'
+          }}>
+            Client <span style={{ color: '#667eea' }}>Management</span>
+          </h1>
+          <p style={{ 
+            fontSize: '16px', 
+            color: '#6b7280',
+            margin: 0,
+            fontWeight: '400'
+          }}>
+            Manage your fitness clients
+          </p>
         </div>
-        <div className="header-actions">
-          <button 
-            className="btn-primary"
-            onClick={() => setShowCreateModal(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            <Plus size={16} />
-            Add New Client
-          </button>
-        </div>
+        <button 
+          className="btn-primary hover-scale"
+          onClick={() => setShowCreateModal(true)}
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: '600',
+            borderRadius: '12px',
+            border: 'none',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+          }}
+        >
+          <Plus size={16} />
+          Add New Client
+        </button>
       </div>
 
       {/* Stats Overview */}
-      <div className="projects-section-line">
-        <div className="projects-status">
-          <div className="item-status">
-            <span className="status-number">{stats.activeClients}</span>
-            <span className="status-type">Active Clients</span>
-          </div>
-          <div className="item-status">
-            <span className="status-number">{stats.totalClients}</span>
-            <span className="status-type">Total Clients</span>
-          </div>
-          <div className="item-status">
-            <span className="status-number">{stats.newThisWeek}</span>
-            <span className="status-type">New This Week</span>
+      <div className="stats-grid" style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+        gap: '20px',
+        marginBottom: '32px'
+      }}>
+        <div className="stat-card" style={{
+          background: 'linear-gradient(135deg, #fee4cb 0%, #f59e0b 100%)',
+          borderRadius: '16px',
+          padding: '24px',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              marginBottom: '4px',
+              color: '#1f2937'
+            }}>
+              {stats.activeClients}
+            </div>
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: '500',
+              color: '#1f2937',
+              opacity: 0.8
+            }}>
+              Active Clients
+            </div>
           </div>
         </div>
         
-        <div className="view-actions">
-          <button 
-            className={`view-btn list-view ${viewMode === 'list' ? 'active' : ''}`}
-            title="List View"
-            onClick={() => setViewMode('list')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
-            </svg>
-          </button>
-          <button 
-            className={`view-btn grid-view ${viewMode === 'grid' ? 'active' : ''}`}
-            title="Grid View"
-            onClick={() => setViewMode('grid')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
-          </button>
+        <div className="stat-card" style={{
+          background: 'linear-gradient(135deg, #e9e7fd 0%, #8b5cf6 100%)',
+          borderRadius: '16px',
+          padding: '24px',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              marginBottom: '4px',
+              color: '#1f2937'
+            }}>
+              {stats.totalClients}
+            </div>
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: '500',
+              color: '#1f2937',
+              opacity: 0.8
+            }}>
+              Total Clients
+            </div>
+          </div>
+        </div>
+        
+        <div className="stat-card" style={{
+          background: 'linear-gradient(135deg, #dbf6fd 0%, #06b6d4 100%)',
+          borderRadius: '16px',
+          padding: '24px',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              marginBottom: '4px',
+              color: '#1f2937'
+            }}>
+              {stats.newThisWeek}
+            </div>
+            <div style={{ 
+              fontSize: '14px', 
+              fontWeight: '500',
+              color: '#1f2937',
+              opacity: 0.8
+            }}>
+              New This Week
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="client-filters" style={{ margin: '20px 0', display: 'flex', gap: '16px', alignItems: 'center' }}>
-        <div className="search-wrapper" style={{ flex: 1, position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+      {/* Controls */}
+      <div className="controls-section" style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '24px',
+        gap: '16px'
+      }}>
+        <div className="search-wrapper" style={{ flex: 1, maxWidth: '400px', position: 'relative' }}>
+          <Search size={16} style={{ 
+            position: 'absolute', 
+            left: '16px', 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            color: '#9ca3af' 
+          }} />
           <input
             type="text"
             placeholder="Search clients by name or email..."
@@ -259,48 +429,139 @@ const ClientManagement = ({ onSelectClient, onCreateClient }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
               width: '100%',
-              padding: '8px 12px 8px 40px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              fontSize: '14px'
+              padding: '12px 16px 12px 48px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '14px',
+              backgroundColor: 'white',
+              transition: 'all 0.2s ease',
+              outline: 'none'
             }}
           />
         </div>
         
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          style={{
-            padding: '8px 12px',
-            border: '1px solid #d1d5db',
-            borderRadius: '8px',
-            fontSize: '14px',
-            backgroundColor: 'white'
-          }}
-        >
-          <option value="active">Active Clients</option>
-          <option value="archived">Archived Clients</option>
-          <option value="all">All Clients</option>
-        </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: '12px 16px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '14px',
+              backgroundColor: 'white',
+              color: '#374151',
+              cursor: 'pointer',
+              outline: 'none'
+            }}
+          >
+            <option value="active">Active Clients</option>
+            <option value="archived">Archived Clients</option>
+            <option value="all">All Clients</option>
+          </select>
+          
+          <div className="view-toggle" style={{ display: 'flex', gap: '4px' }}>
+            <button 
+              className={`view-btn hover-scale ${viewMode === 'list' ? 'active' : ''}`}
+              title="List View"
+              onClick={() => setViewMode('list')}
+              style={{
+                padding: '10px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                backgroundColor: viewMode === 'list' ? '#667eea' : 'white',
+                color: viewMode === 'list' ? 'white' : '#6b7280',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </button>
+            <button 
+              className={`view-btn hover-scale ${viewMode === 'grid' ? 'active' : ''}`}
+              title="Grid View"
+              onClick={() => setViewMode('grid')}
+              style={{
+                padding: '10px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                backgroundColor: viewMode === 'grid' ? '#667eea' : 'white',
+                color: viewMode === 'grid' ? 'white' : '#6b7280',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Client Grid */}
-      <div className={`project-boxes client-grid ${viewMode === 'grid' ? 'jsGridView' : 'jsListView'}`}>
+      <div className={`clients-grid ${viewMode === 'grid' ? 'grid-view' : 'list-view'}`} style={{
+        display: 'grid',
+        gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(320px, 1fr))' : '1fr',
+        gap: '20px',
+        marginBottom: '32px'
+      }}>
         {filteredClients.length > 0 ? (
           filteredClients.map((client) => (
             <ClientCard key={client.id} client={client} />
           ))
         ) : (
-          <div className="empty-state" style={{ textAlign: 'center', padding: '40px' }}>
+          <div className="empty-state" style={{ 
+            gridColumn: '1 / -1',
+            textAlign: 'center', 
+            padding: '60px 20px',
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            border: '1px solid #e5e7eb'
+          }}>
             <Users size={48} style={{ color: '#9ca3af', marginBottom: '16px' }} />
-            <h3>No clients found</h3>
-            <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+            <h3 style={{ 
+              fontSize: '18px', 
+              fontWeight: '600', 
+              color: '#374151',
+              margin: '0 0 8px 0'
+            }}>
+              No clients found
+            </h3>
+            <p style={{ 
+              color: '#6b7280', 
+              marginBottom: '24px',
+              fontSize: '14px'
+            }}>
               {searchTerm ? 'Try adjusting your search terms' : 'Start by adding your first client'}
             </p>
             <button 
-              className="btn-primary"
+              className="btn-primary hover-scale"
               onClick={() => setShowCreateModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 auto' }}
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                padding: '12px 20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
             >
               <Plus size={16} />
               Add Your First Client
@@ -688,4 +949,4 @@ const ClientOnboardingModal = ({ onClose, onSuccess }) => {
   );
 };
 
-export default ClientManagement; 
+export default ClientManagement;
