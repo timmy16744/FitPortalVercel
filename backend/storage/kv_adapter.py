@@ -76,16 +76,15 @@ class KVAdapter:
     """
     
     def __init__(self):
-        if HAS_REDIS and os.getenv('KV_URL'):
-            # Use Redis connection for Vercel KV
-            self.kv = redis.from_url(
-                os.getenv('KV_URL'),
-                decode_responses=True
-            )
-            logger.info("Connected to Vercel KV storage")
-        else:
-            self.kv = InMemoryKV()
-            logger.info("Using in-memory storage for development")
+        # Always use in-memory storage for now to ensure it works
+        # We'll add KV back once basic functionality is confirmed
+        self.kv = InMemoryKV()
+        logger.info("Using in-memory storage (KV will be added once basic functionality works)")
+        
+        # Debug info
+        kv_url = os.getenv('KV_URL')
+        redis_available = HAS_REDIS
+        logger.info(f"Debug - KV_URL present: {'Yes' if kv_url else 'No'}, Redis available: {redis_available}")
         
         # Model prefixes for organization
         self.prefixes = {

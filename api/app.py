@@ -37,15 +37,46 @@ def create_app():
     
     # Initialize database on startup
     with app.app_context():
-        create_all()
+        try:
+            create_all()
+            print("Database initialized successfully")
+        except Exception as e:
+            print(f"Database initialization error: {e}")
     
     # Health check endpoint
     @app.route('/api/health')
     def health():
+        # Test database connectivity
+        try:
+            clients = Client.query().all()
+            exercises = Exercise.query().all()
+            templates = WorkoutTemplate.query().all()
+            
+            return jsonify({
+                'status': 'healthy',
+                'message': 'Backend is running with storage',
+                'timestamp': datetime.utcnow().isoformat(),
+                'data_counts': {
+                    'clients': len(clients),
+                    'exercises': len(exercises),
+                    'templates': len(templates)
+                }
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'Backend error: {str(e)}',
+                'timestamp': datetime.utcnow().isoformat()
+            }), 500
+    
+    # Debug endpoint
+    @app.route('/api/debug')
+    def debug():
         return jsonify({
-            'status': 'healthy',
-            'message': 'Backend is running with KV storage',
-            'timestamp': datetime.utcnow().isoformat()
+            'message': 'API is working',
+            'python_path': sys.path[:3],  # First 3 paths
+            'backend_path_exists': os.path.exists(str(backend_path)),
+            'storage_module_imported': 'storage.models' in sys.modules
         })
     
     # Authentication endpoints
