@@ -6,7 +6,7 @@
       "use": "@vercel/python"
     },
     {
-      "src": "frontend/package.json",
+      "src": "frontend/package.json", 
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
@@ -25,7 +25,20 @@
   ],
   "functions": {
     "api/app.py": {
-      "includeFiles": "backend/**"
+      "includeFiles": "backend/**",
+      "maxDuration": 30
     }
+  },
+  "env": {
+    "TRAINER_EMAIL": "@trainer_email",
+    "TRAINER_PASSWORD": "@trainer_password"
+  },
+  "build": {
+    "env": {
+      "ENABLE_VC_BUILD": "1"
+    }
+  },
+  "github": {
+    "silent": true
   }
 }
