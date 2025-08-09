@@ -6,7 +6,6 @@ This provides compatibility with existing routes
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 import json
-import asyncio
 
 class BaseModel:
     """Base model class with common CRUD operations"""
@@ -19,60 +18,60 @@ class BaseModel:
             setattr(self, key, value)
     
     @classmethod
-    async def create(cls, **kwargs) -> 'BaseModel':
+    def create(cls, **kwargs) -> 'BaseModel':
         """Create a new record"""
         if not cls._db:
             from .kv_adapter import db
             cls._db = db
         
-        data = await cls._db.create(cls._model_type, kwargs)
+        data = cls._db.create(cls._model_type, kwargs)
         return cls(**data)
     
     @classmethod
-    async def get(cls, id: str) -> Optional['BaseModel']:
+    def get(cls, id: str) -> Optional['BaseModel']:
         """Get a record by ID"""
         if not cls._db:
             from .kv_adapter import db
             cls._db = db
         
-        data = await cls._db.get(cls._model_type, id)
+        data = cls._db.get(cls._model_type, id)
         if data:
             return cls(**data)
         return None
     
     @classmethod
-    async def get_all(cls, **filters) -> List['BaseModel']:
+    def get_all(cls, **filters) -> List['BaseModel']:
         """Get all records with optional filters"""
         if not cls._db:
             from .kv_adapter import db
             cls._db = db
         
-        records = await cls._db.get_all(cls._model_type, filters=filters if filters else None)
+        records = cls._db.get_all(cls._model_type, filters=filters if filters else None)
         return [cls(**record) for record in records]
     
     @classmethod
-    async def find_one(cls, **kwargs) -> Optional['BaseModel']:
+    def find_one(cls, **kwargs) -> Optional['BaseModel']:
         """Find a single record matching criteria"""
         if not cls._db:
             from .kv_adapter import db
             cls._db = db
         
-        data = await cls._db.find_one(cls._model_type, **kwargs)
+        data = cls._db.find_one(cls._model_type, **kwargs)
         if data:
             return cls(**data)
         return None
     
     @classmethod
-    async def find_many(cls, **kwargs) -> List['BaseModel']:
+    def find_many(cls, **kwargs) -> List['BaseModel']:
         """Find multiple records matching criteria"""
         if not cls._db:
             from .kv_adapter import db
             cls._db = db
         
-        records = await cls._db.find_many(cls._model_type, **kwargs)
+        records = cls._db.find_many(cls._model_type, **kwargs)
         return [cls(**record) for record in records]
     
-    async def save(self) -> 'BaseModel':
+    def save(self) -> 'BaseModel':
         """Save the current instance (create or update)"""
         if not self._db:
             from .kv_adapter import db
@@ -82,25 +81,25 @@ class BaseModel:
         
         if hasattr(self, 'id') and self.id:
             # Update existing
-            updated = await self._db.update(self._model_type, self.id, data)
+            updated = self._db.update(self._model_type, self.id, data)
             for key, value in updated.items():
                 setattr(self, key, value)
         else:
             # Create new
-            created = await self._db.create(self._model_type, data)
+            created = self._db.create(self._model_type, data)
             for key, value in created.items():
                 setattr(self, key, value)
         
         return self
     
-    async def delete(self) -> bool:
+    def delete(self) -> bool:
         """Delete the current instance"""
         if not self._db:
             from .kv_adapter import db
             self._db = db
         
         if hasattr(self, 'id'):
-            return await self._db.delete(self._model_type, self.id)
+            return self._db.delete(self._model_type, self.id)
         return False
     
     def to_dict(self) -> Dict[str, Any]:
@@ -123,20 +122,12 @@ class SyncModelWrapper:
         self.async_model = async_model_class
     
     def create(self, **kwargs):
-        """Sync wrapper for create"""
-        loop = asyncio.new_event_loop()
-        try:
-            return loop.run_until_complete(self.async_model.create(**kwargs))
-        finally:
-            loop.close()
+        """Create a new record"""
+        return self.async_model.create(**kwargs)
     
     def get(self, id: str):
-        """Sync wrapper for get"""
-        loop = asyncio.new_event_loop()
-        try:
-            return loop.run_until_complete(self.async_model.get(id))
-        finally:
-            loop.close()
+        """Get a record by ID"""
+        return self.async_model.get(id)
     
     def query(self):
         """Returns a query object for chaining"""
@@ -160,19 +151,11 @@ class SyncQuery:
     
     def first(self):
         """Get first result"""
-        loop = asyncio.new_event_loop()
-        try:
-            return loop.run_until_complete(self.async_model.find_one(**self.filters))
-        finally:
-            loop.close()
+        return self.async_model.find_one(**self.filters)
     
     def all(self):
         """Get all results"""
-        loop = asyncio.new_event_loop()
-        try:
-            return loop.run_until_complete(self.async_model.find_many(**self.filters))
-        finally:
-            loop.close()
+        return self.async_model.find_many(**self.filters)
 
 # Model Classes
 class AsyncClient(BaseModel):
@@ -232,11 +215,7 @@ class DBSession:
     def add(self, obj):
         """Mock add - saves immediately"""
         if hasattr(obj, 'save'):
-            loop = asyncio.new_event_loop()
-            try:
-                loop.run_until_complete(obj.save())
-            finally:
-                loop.close()
+            obj.save()
     
     def commit(self):
         """Mock commit - no-op since we save immediately"""
@@ -262,8 +241,4 @@ def create_all():
     """Create all tables (compatibility)"""
     # Initialize database with seed data if needed
     from .kv_adapter import init_db
-    loop = asyncio.new_event_loop()
-    try:
-        loop.run_until_complete(init_db())
-    finally:
-        loop.close()
+    init_db()

@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timedelta
 import random
 
-async def seed_database(db):
+def seed_database_sync(db):
     """Initialize database with demo data"""
     
     # Create demo trainer account (this would normally be a separate User model)
@@ -75,7 +75,7 @@ async def seed_database(db):
     ]
     
     for client in demo_clients:
-        await db.create('client', client)
+        db.create('client', client)
     
     # Create sample exercises
     exercises = [
@@ -108,7 +108,7 @@ async def seed_database(db):
     ]
     
     for exercise in exercises:
-        await db.create('exercise', exercise)
+        db.create('exercise', exercise)
     
     # Create sample workout templates
     workout_templates = [
@@ -186,7 +186,7 @@ async def seed_database(db):
     ]
     
     for template in workout_templates:
-        await db.create('workout_template', template)
+        db.create('workout_template', template)
     
     # Create sample workout logs for demo clients
     today = datetime.utcnow()
@@ -195,7 +195,7 @@ async def seed_database(db):
         
         # Alex's workout logs
         if i % 2 == 0:  # Every other day
-            await db.create('workout_log', {
+            db.create('workout_log', {
                 "client_id": "demo-client-1",
                 "template_id": "template-1" if i % 4 == 0 else "template-2",
                 "completed_at": log_date.isoformat(),
@@ -206,7 +206,7 @@ async def seed_database(db):
         
         # Sarah's workout logs
         if i % 3 == 0:  # Every 3 days
-            await db.create('workout_log', {
+            db.create('workout_log', {
                 "client_id": "demo-client-2",
                 "template_id": "template-1",
                 "completed_at": log_date.isoformat(),
@@ -221,7 +221,7 @@ async def seed_database(db):
             stat_date = today - timedelta(weeks=i)
             base_weight = 75 if client_id == "demo-client-1" else 60 if client_id == "demo-client-2" else 70
             
-            await db.create('body_stat', {
+            db.create('body_stat', {
                 "client_id": client_id,
                 "recorded_at": stat_date.isoformat(),
                 "weight": base_weight - (i * 0.5),  # Gradual weight loss
@@ -259,7 +259,7 @@ async def seed_database(db):
     ]
     
     for achievement in achievements:
-        await db.create('achievement', achievement)
+        db.create('achievement', achievement)
     
     # Create sample messages
     messages = [
@@ -284,7 +284,7 @@ async def seed_database(db):
     ]
     
     for message in messages:
-        await db.create('message', message)
+        db.create('message', message)
     
     # Create sample meal plans
     meal_plans = [
@@ -318,7 +318,7 @@ async def seed_database(db):
     ]
     
     for plan in meal_plans:
-        await db.create('meal_plan', plan)
+        db.create('meal_plan', plan)
     
     return {
         "clients": len(demo_clients),

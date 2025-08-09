@@ -13,7 +13,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_socketio import SocketIO
 import json
-import asyncio
 from datetime import datetime
 
 def create_app():
@@ -116,13 +115,7 @@ def create_app():
             data['pin'] = str(random.randint(100000, 999999))
         
         client = Client(**data)
-        
-        # Save using async wrapper
-        loop = asyncio.new_event_loop()
-        try:
-            loop.run_until_complete(client.save())
-        finally:
-            loop.close()
+        client.save()
         
         return jsonify({
             'success': True,
@@ -160,12 +153,7 @@ def create_app():
         """Create new exercise"""
         data = request.json
         exercise = Exercise(**data)
-        
-        loop = asyncio.new_event_loop()
-        try:
-            loop.run_until_complete(exercise.save())
-        finally:
-            loop.close()
+        exercise.save()
         
         return jsonify({
             'success': True,
@@ -192,12 +180,7 @@ def create_app():
             data['data'] = json.dumps(data['data'])
         
         template = WorkoutTemplate(**data)
-        
-        loop = asyncio.new_event_loop()
-        try:
-            loop.run_until_complete(template.save())
-        finally:
-            loop.close()
+        template.save()
         
         return jsonify({
             'success': True,
@@ -219,12 +202,7 @@ def create_app():
         """Create workout log"""
         data = request.json
         log = WorkoutLog(**data)
-        
-        loop = asyncio.new_event_loop()
-        try:
-            loop.run_until_complete(log.save())
-        finally:
-            loop.close()
+        log.save()
         
         return jsonify({
             'success': True,
@@ -246,12 +224,7 @@ def create_app():
         """Create body stat"""
         data = request.json
         stat = BodyStat(**data)
-        
-        loop = asyncio.new_event_loop()
-        try:
-            loop.run_until_complete(stat.save())
-        finally:
-            loop.close()
+        stat.save()
         
         return jsonify({
             'success': True,
@@ -273,12 +246,7 @@ def create_app():
         """Send a message"""
         data = request.json
         message = Message(**data)
-        
-        loop = asyncio.new_event_loop()
-        try:
-            loop.run_until_complete(message.save())
-        finally:
-            loop.close()
+        message.save()
         
         # Emit via SocketIO if available
         if hasattr(app, 'socketio'):

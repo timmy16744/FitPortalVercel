@@ -19,8 +19,12 @@
       "dest": "api/app.py"
     },
     {
-      "src": "/(.*)",
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg))",
       "dest": "frontend/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/index.html"
     }
   ],
   "functions": {
@@ -28,17 +32,5 @@
       "includeFiles": "backend/**",
       "maxDuration": 30
     }
-  },
-  "env": {
-    "TRAINER_EMAIL": "@trainer_email",
-    "TRAINER_PASSWORD": "@trainer_password"
-  },
-  "build": {
-    "env": {
-      "ENABLE_VC_BUILD": "1"
-    }
-  },
-  "github": {
-    "silent": true
   }
 }
