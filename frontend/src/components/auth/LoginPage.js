@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Dumbbell } from 'lucide-react';
-import { useAuth } from '../../utils/AuthContext';
-import { useNotification } from '../../utils/NotificationContext';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -11,10 +10,7 @@ const LoginPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  const { login } = useAuth();
-  const { showError, showSuccess } = useNotification();
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -22,220 +18,120 @@ const LoginPage = () => {
       ...prev,
       [name]: value
     }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
     setIsLoading(true);
-
-    try {
-      const result = await login(formData.email, formData.password);
-      
-      if (result.success) {
-        showSuccess('Welcome back!', 'Login Successful');
-      } else {
-        showError(result.error, 'Login Failed');
-      }
-    } catch (error) {
-      showError('An unexpected error occurred. Please try again.', 'Login Failed');
-    } finally {
+    
+    // Simulate login - just navigate to trainer dashboard
+    setTimeout(() => {
       setIsLoading(false);
-    }
+      navigate('/trainer');
+    }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-bg via-accent-bg to-primary-bg flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-brand-primary/20 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-brand-secondary/20 to-transparent rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-brand-accent/10 to-transparent rounded-full blur-2xl" />
-      </div>
-
-      {/* Login Container */}
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 to-brand-100 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative z-10 w-full max-w-md"
+        className="w-full max-w-md"
       >
-        <div className="glass-card p-8">
-          {/* Logo and Brand */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-center mb-8"
-          >
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg">
+        <div className="card-premium p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center">
               <Dumbbell className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-display bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent mb-2">
-              FitPortal
-            </h1>
-            <p className="text-text-secondary">
-              Welcome back to your fitness journey
-            </p>
-          </motion.div>
+            <h1 className="text-2xl font-bold text-primary mb-2">Welcome to FitPortal</h1>
+            <p className="text-secondary">Sign in to your trainer account</p>
+          </div>
 
-          {/* Login Form */}
-          <motion.form
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            onSubmit={handleSubmit}
-            className="space-y-6"
-          >
-            {/* Email Field */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text-primary">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Input */}
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">
                 Email Address
               </label>
-              <div className="input-group">
-                <Mail className="input-icon w-5 h-5" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-secondary" />
+                </div>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`input ${errors.email ? 'border-error focus:border-error' : ''}`}
-                  placeholder="Enter your email"
-                  disabled={isLoading}
+                  className="input-premium pl-10"
+                  placeholder="trainer@fitportal.com"
+                  required
                 />
               </div>
-              {errors.email && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-error"
-                >
-                  {errors.email}
-                </motion.p>
-              )}
             </div>
 
-            {/* Password Field */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text-primary">
+            {/* Password Input */}
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">
                 Password
               </label>
-              <div className="input-group">
-                <Lock className="input-icon w-5 h-5" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-secondary" />
+                </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`input pr-12 ${errors.password ? 'border-error focus:border-error' : ''}`}
+                  className="input-premium pl-10 pr-10"
                   placeholder="Enter your password"
-                  disabled={isLoading}
+                  required
                 />
                 <button
                   type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
-                  disabled={isLoading}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-secondary hover:text-primary" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-secondary hover:text-primary" />
+                  )}
                 </button>
               </div>
-              {errors.password && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-error"
-                >
-                  {errors.password}
-                </motion.p>
-              )}
             </div>
 
-            {/* Submit Button */}
+            {/* Login Button */}
             <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full btn btn-primary py-3 text-base font-semibold group"
+              className="btn-premium btn-premium--primary w-full"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                  />
+                <div className="flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   Signing In...
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center">
                   Sign In
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               )}
             </motion.button>
-          </motion.form>
+          </form>
 
-          {/* Demo Credentials */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-            className="mt-8 p-4 bg-info/5 border border-info/20 rounded-lg"
-          >
-            <h3 className="text-sm font-semibold text-info mb-2">Demo Credentials</h3>
-            <div className="text-xs text-text-secondary space-y-1">
-              <p><strong>Trainer:</strong> trainer@fitportal.com / password123</p>
-              <p><strong>Client:</strong> client@fitportal.com / password123</p>
-            </div>
-          </motion.div>
-
-          {/* Footer */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.5 }}
-            className="mt-8 text-center"
-          >
-            <p className="text-caption">
-              Need help? Contact{' '}
-              <a href="mailto:support@fitportal.com" className="text-brand-primary hover:text-brand-secondary transition-colors">
-                support@fitportal.com
-              </a>
+          {/* Demo Info */}
+          <div className="mt-6 p-4 bg-brand-50 rounded-lg">
+            <p className="text-sm text-secondary text-center">
+              Demo Mode: Click "Sign In" to access the trainer dashboard
             </p>
-          </motion.div>
+          </div>
         </div>
       </motion.div>
     </div>

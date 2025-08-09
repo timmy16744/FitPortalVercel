@@ -116,6 +116,26 @@ class ApiClient {
     });
   }
 
+  async addExercise(exerciseData) {
+    return await this.request('/exercises', {
+      method: 'POST',
+      body: JSON.stringify(exerciseData),
+    });
+  }
+
+  async updateExercise(exerciseId, exerciseData) {
+    return await this.request(`/exercises/${exerciseId}`, {
+      method: 'PUT',
+      body: JSON.stringify(exerciseData),
+    });
+  }
+
+  async deleteExercise(exerciseId) {
+    return await this.request(`/exercises/${exerciseId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Workout Templates
   async getWorkoutTemplates() {
     return await this.request('/templates');

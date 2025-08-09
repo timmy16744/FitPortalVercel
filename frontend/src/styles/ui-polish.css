@@ -1,0 +1,178 @@
+/* ===== UI POLISH ENHANCEMENTS ===== */
+
+/* Improved sidebar brand area */
+.sidebar-layout__brand {
+  background: linear-gradient(135deg, var(--surface-glass-light) 0%, var(--surface-background) 100%) !important;
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  border-bottom: 1px solid var(--border-interactive) !important;
+  transition: all var(--duration-normal) var(--ease-out) !important;
+}
+
+.sidebar-layout__brand:hover {
+  background: linear-gradient(135deg, var(--surface-glass-medium) 0%, var(--surface-background) 100%) !important;
+}
+
+/* Enhanced navigation active states */
+.nav-premium__item.active {
+  background: linear-gradient(135deg, var(--brand-100) 0%, var(--brand-50) 100%) !important;
+  color: var(--brand-700) !important;
+  border: 1px solid var(--brand-200) !important;
+  box-shadow: var(--shadow-brand-soft) !important;
+}
+
+.nav-premium__item:hover {
+  background: var(--surface-glass-light) !important;
+  color: var(--text-primary) !important;
+  transform: translateX(4px) !important;
+  border: 1px solid var(--border-interactive) !important;
+}
+
+/* Premium card hover effects */
+.card-premium:hover {
+  transform: translateY(-4px) scale(1.02) !important;
+  box-shadow: var(--shadow-2xl) !important;
+  border: 1px solid var(--brand-200) !important;
+}
+
+.stat-card-premium:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  box-shadow: var(--shadow-xl) !important;
+  background: linear-gradient(135deg, var(--surface-glass-medium) 0%, var(--surface-background) 100%) !important;
+}
+
+/* Header improvements */
+.header-premium {
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid var(--border-interactive) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+/* Button enhancements */
+.btn-premium:hover {
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.btn-premium:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+/* Smooth scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-background);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--brand-300), var(--brand-400));
+  border-radius: var(--radius-full);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--brand-400), var(--brand-500));
+}
+
+/* Focus improvements */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--brand-500) !important;
+  outline-offset: 2px !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* Loading state improvements */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Micro animations */
+.hover-lift {
+  transition: all var(--duration-normal) var(--ease-out) !important;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px) !important;
+}
+
+.hover-scale {
+  transition: transform var(--duration-fast) var(--ease-out) !important;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Glass morphism enhancements */
+.glass-enhanced {
+  background: var(--surface-glass-backdrop) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid var(--border-glass) !important;
+}
+
+/* Page transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Status indicators */
+.status-online {
+  background: linear-gradient(135deg, var(--success-500), var(--success-600)) !important;
+  box-shadow: 0 0 12px var(--success-300) !important;
+}
+
+.status-busy {
+  background: linear-gradient(135deg, var(--warning-500), var(--warning-600)) !important;
+  box-shadow: 0 0 12px var(--warning-300) !important;
+}
+
+.status-offline {
+  background: linear-gradient(135deg, var(--gray-400), var(--gray-500)) !important;
+}
+
+/* Enhanced shadows for depth */
+.premium-depth {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
+}
+
+.premium-depth-lg {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
+}

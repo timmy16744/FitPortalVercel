@@ -22,5 +22,5 @@ def handler(request):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print(f"[run.py] 🚀  Starting Ducks Trainer Portal backend on port {port}...")
+    print(f"[run.py] Starting Ducks Trainer Portal backend on port {port}...")
     socketio.run(app, host='0.0.0.0', port=port)

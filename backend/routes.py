@@ -19,7 +19,7 @@ from flask import request
 from .models import (Client, Exercise, WorkoutTemplate, ProgramAssignment, WorkoutLog,
                      Recipe, MealPlan, NutritionLog, BodyStat, ProgressPhoto, License,
                      Prospect, Resource, Message, Achievement, DailyCheckin, Group, Alert, Program,
-                     Category, Muscle, Equipment)
+                     Category, Muscle, Equipment, ClientExerciseCustomization)
 
 
 # --- to_dict helpers ---
@@ -618,6 +618,133 @@ def get_workout_assignments():
     assignments = ProgramAssignment.query.all()
     return jsonify([a.to_dict() for a in assignments])
 
+# Enhanced Client-Specific Template Management
+@app.route("/api/clients/<client_id>/workout-assignment", methods=["POST"])
+@protected
+def create_client_workout_assignment(client_id):
+    """Create or update a client's workout assignment with customizations"""
+    data = request.get_json()
+    client = Client.query.get(client_id)
+    if not client:
+        return jsonify({"message": "Client not found"}), 404
+    
+    template = WorkoutTemplate.query.get(data.get('template_id'))
+    if not template:
+        return jsonify({"message": "Template not found"}), 404
+    
+    # Deactivate any existing assignments
+    existing_assignments = ProgramAssignment.query.filter_by(client_id=client_id, active=True).all()
+    for assignment in existing_assignments:
+        assignment.active = False
+    
+    # Create new assignment with customizations
+    assignment = ProgramAssignment(
+        client_id=client_id,
+        template_id=data.get('template_id'),
+        custom_name=data.get('custom_name'),
+        enabled_days=json.dumps(data.get('enabled_days', [])),
+        day_customizations=json.dumps(data.get('day_customizations', {})),
+        notes=data.get('notes', ''),
+        active=True
+    )
+    
+    db.session.add(assignment)
+    db.session.commit()
+    
+    return jsonify(assignment.to_dict()), 201
+
+@app.route("/api/clients/<client_id>/workout-assignment", methods=["PUT"])
+@protected
+def update_client_workout_assignment(client_id):
+    """Update a client's workout assignment customizations"""
+    data = request.get_json()
+    assignment = ProgramAssignment.query.filter_by(client_id=client_id, active=True).first()
+    
+    if not assignment:
+        return jsonify({"message": "No active assignment found"}), 404
+    
+    # Update assignment fields
+    if 'custom_name' in data:
+        assignment.custom_name = data['custom_name']
+    if 'enabled_days' in data:
+        assignment.enabled_days = json.dumps(data['enabled_days'])
+    if 'day_customizations' in data:
+        assignment.day_customizations = json.dumps(data['day_customizations'])
+    if 'notes' in data:
+        assignment.notes = data['notes']
+    
+    db.session.commit()
+    return jsonify(assignment.to_dict())
+
+@app.route("/api/clients/<client_id>/workout-assignment", methods=["GET"])
+@protected
+def get_client_workout_assignment(client_id):
+    """Get a client's current workout assignment with customizations"""
+    assignment = ProgramAssignment.query.filter_by(client_id=client_id, active=True).first()
+    
+    if not assignment:
+        return jsonify({"message": "No active assignment found"}), 404
+    
+    # Include template details
+    template = WorkoutTemplate.query.get(assignment.template_id)
+    result = assignment.to_dict()
+    if template:
+        result['template'] = template.to_dict()
+    
+    return jsonify(result)
+
+@app.route("/api/clients/<client_id>/workout-assignment/customize-exercise", methods=["POST"])
+@protected  
+def customize_client_exercise(client_id):
+    """Create or update exercise-level customizations for a client"""
+    data = request.get_json()
+    assignment = ProgramAssignment.query.filter_by(client_id=client_id, active=True).first()
+    
+    if not assignment:
+        return jsonify({"message": "No active assignment found"}), 404
+    
+    # Check if customization already exists
+    existing = ClientExerciseCustomization.query.filter_by(
+        assignment_id=assignment.id,
+        day_index=data.get('day_index'),
+        exercise_id=data.get('exercise_id')
+    ).first()
+    
+    if existing:
+        # Update existing customization
+        existing.enabled = data.get('enabled', existing.enabled)
+        existing.custom_sets = json.dumps(data.get('custom_sets', json.loads(existing.custom_sets or '[]')))
+        existing.notes = data.get('notes', existing.notes)
+        existing.substitute_exercise_id = data.get('substitute_exercise_id', existing.substitute_exercise_id)
+        customization = existing
+    else:
+        # Create new customization
+        customization = ClientExerciseCustomization(
+            assignment_id=assignment.id,
+            day_index=data.get('day_index'),
+            exercise_id=data.get('exercise_id'),
+            enabled=data.get('enabled', True),
+            custom_sets=json.dumps(data.get('custom_sets', [])),
+            notes=data.get('notes', ''),
+            substitute_exercise_id=data.get('substitute_exercise_id')
+        )
+        db.session.add(customization)
+    
+    db.session.commit()
+    return jsonify(customization.to_dict())
+
+@app.route("/api/clients/<client_id>/workout-assignment/exercise-customizations", methods=["GET"])
+@protected
+def get_client_exercise_customizations(client_id):
+    """Get all exercise customizations for a client"""
+    assignment = ProgramAssignment.query.filter_by(client_id=client_id, active=True).first()
+    
+    if not assignment:
+        return jsonify({"message": "No active assignment found"}), 404
+    
+    customizations = ClientExerciseCustomization.query.filter_by(assignment_id=assignment.id).all()
+    return jsonify([c.to_dict() for c in customizations])
+
 @app.route("/api/clients/<client_id>/exercises", methods=["GET"])
 def get_client_exercises(client_id):
     """Gets exercises assigned to a specific client via their active program."""
@@ -678,15 +805,44 @@ def get_client_exercises(client_id):
     except json.JSONDecodeError:
         days_data = []
 
+    # Apply client-specific customizations
+    enabled_days = json.loads(assignment.enabled_days or '[]') if hasattr(assignment, 'enabled_days') and assignment.enabled_days else list(range(len(days_data)))
+    day_customizations = json.loads(assignment.day_customizations or '{}') if hasattr(assignment, 'day_customizations') and assignment.day_customizations else {}
+    
+    # Filter days based on enabled_days and apply customizations
+    filtered_days = []
+    for i, day in enumerate(days_data):
+        if i in enabled_days:
+            # Apply day-specific customizations if they exist
+            customized_day = day.copy() if isinstance(day, dict) else day
+            if str(i) in day_customizations:
+                day_custom = day_customizations[str(i)]
+                # Apply any day-level customizations here
+                if 'name' in day_custom:
+                    customized_day['name'] = day_custom['name']
+                if 'description' in day_custom:
+                    customized_day['description'] = day_custom['description']
+            filtered_days.append(customized_day)
+
+    # Get exercise-level customizations
+    exercise_customizations = {}
+    if hasattr(assignment, 'exercise_customizations'):
+        for custom in assignment.exercise_customizations:
+            key = f"{custom.day_index}_{custom.exercise_id}"
+            exercise_customizations[key] = custom.to_dict()
+
     payload = {
         "assignmentId": assignment.id,
         "startDate": assignment.start_date.isoformat() if assignment.start_date else None,
         "currentDayIndex": assignment.current_day_index,
+        "customName": assignment.custom_name if hasattr(assignment, 'custom_name') else None,
+        "notes": assignment.notes if hasattr(assignment, 'notes') else None,
         "workout": {
             "id": template.id,
             "templateId": template.id,
-            "templateName": template.name,
-            "days": days_data
+            "templateName": assignment.custom_name or template.name,
+            "days": filtered_days,
+            "exerciseCustomizations": exercise_customizations
         }
     }
 
@@ -699,18 +855,62 @@ def add_exercise():
     if not data or not data.get("name"):
         return jsonify({"message": "Name is required!"}), 400
 
-    # This assumes muscleIds, categoryId, equipmentId are passed
+    # Generate unique ID for the exercise
+    import uuid
+    exercise_id = f"ex_{uuid.uuid4().hex[:8]}"
+
+    # Create exercise with simplified data structure
     new_exercise = Exercise(
+        id=exercise_id,
         name=data["name"],
         instructions=data.get("instructions"),
-        media_url=data.get("mediaUrl"),
-        category_id=data.get("categoryId"),
-        equipment_id=data.get("equipmentId"),
-        muscles=[Muscle.query.get(muscle_id) for muscle_id in data.get("muscleIds", [])]
+        media_url=data.get("gifUrl"),  # Use gifUrl for media_url
+        bodyPart=data.get("bodyPart"),
+        target=data.get("target"),
+        equipment=data.get("equipment")
     )
     db.session.add(new_exercise)
     db.session.commit()
     return jsonify({"exercise": exercise_to_dict(new_exercise)}), 201
+
+@app.route("/api/exercises/<exercise_id>", methods=["PUT"])
+@protected
+def update_exercise(exercise_id):
+    exercise = Exercise.query.get(exercise_id)
+    if not exercise:
+        return jsonify({"message": "Exercise not found!"}), 404
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({"message": "No data provided!"}), 400
+    
+    # Update exercise fields
+    if "name" in data:
+        exercise.name = data["name"]
+    if "instructions" in data:
+        exercise.instructions = data["instructions"]
+    if "gifUrl" in data:
+        exercise.media_url = data["gifUrl"]  # Use media_url for gifUrl
+    if "bodyPart" in data:
+        exercise.bodyPart = data["bodyPart"]
+    if "equipment" in data:
+        exercise.equipment = data["equipment"]
+    if "target" in data:
+        exercise.target = data["target"]
+    
+    db.session.commit()
+    return jsonify({"exercise": exercise_to_dict(exercise)})
+
+@app.route("/api/exercises/<exercise_id>", methods=["DELETE"])
+@protected
+def delete_exercise(exercise_id):
+    exercise = Exercise.query.get(exercise_id)
+    if not exercise:
+        return jsonify({"message": "Exercise not found!"}), 404
+    
+    db.session.delete(exercise)
+    db.session.commit()
+    return jsonify({"message": "Exercise deleted successfully"})
 
 @app.route('/media/exercises/<path:filename>')
 def serve_exercise_media(filename):

@@ -98,17 +98,29 @@ class ProgramAssignment(db.Model):
     start_date = db.Column(db.Date, nullable=False, default=date.today)
     current_day_index = db.Column(db.Integer, default=0)
     active = db.Column(db.Boolean, default=True)
+    
+    # Enhanced client-specific customizations
+    custom_name = db.Column(db.String(200))  # Client-specific program name
+    enabled_days = db.Column(db.Text, default='[]')  # JSON array of enabled day indices
+    day_customizations = db.Column(db.Text, default='{}')  # JSON of per-day customizations
+    notes = db.Column(db.Text)  # Trainer notes for this client's program
+    
     client = db.relationship('Client', backref=db.backref('program_assignments', lazy=True))
     template = db.relationship('WorkoutTemplate', backref=db.backref('program_assignments', lazy=True))
 
     def to_dict(self):
+        import json
         return {
             'id': self.id,
             'client_id': self.client_id,
             'template_id': self.template_id,
             'start_date': self.start_date.isoformat(),
             'active': self.active,
-            'current_day_index': self.current_day_index
+            'current_day_index': self.current_day_index,
+            'custom_name': self.custom_name,
+            'enabled_days': json.loads(self.enabled_days or '[]'),
+            'day_customizations': json.loads(self.day_customizations or '{}'),
+            'notes': self.notes
         }
 
 class WorkoutLog(db.Model):
@@ -221,4 +233,32 @@ class Program(db.Model):
     id = db.Column(db.String, primary_key=True, default=lambda: f"prg_{uuid.uuid4()}")
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    weeks = db.Column(db.Text, default='[]') 
+    weeks = db.Column(db.Text, default='[]')
+
+class ClientExerciseCustomization(db.Model):
+    """Store client-specific exercise modifications"""
+    id = db.Column(db.String, primary_key=True, default=lambda: f"cec_{uuid.uuid4()}")
+    assignment_id = db.Column(db.String, db.ForeignKey('program_assignment.id'), nullable=False)
+    day_index = db.Column(db.Integer, nullable=False)
+    exercise_id = db.Column(db.String, nullable=False)  # Reference to original exercise in template
+    
+    # Customization fields
+    enabled = db.Column(db.Boolean, default=True)
+    custom_sets = db.Column(db.Text)  # JSON array of custom set configurations
+    notes = db.Column(db.Text)  # Exercise-specific notes for this client
+    substitute_exercise_id = db.Column(db.String)  # If exercise is substituted
+    
+    assignment = db.relationship('ProgramAssignment', backref=db.backref('exercise_customizations', lazy=True))
+    
+    def to_dict(self):
+        import json
+        return {
+            'id': self.id,
+            'assignment_id': self.assignment_id,
+            'day_index': self.day_index,
+            'exercise_id': self.exercise_id,
+            'enabled': self.enabled,
+            'custom_sets': json.loads(self.custom_sets or '[]'),
+            'notes': self.notes,
+            'substitute_exercise_id': self.substitute_exercise_id
+        } 

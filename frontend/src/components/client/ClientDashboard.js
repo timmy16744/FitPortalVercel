@@ -1,281 +1,179 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Dumbbell, Apple, BarChart2, MessageSquare, Lock } from 'lucide-react';
-import ApiClient from '../../utils/ApiClient';
-import { useNotification } from '../../utils/NotificationContext';
-
-// Import client page components
-import HomePage from './HomePage';
-import TrainPage from './TrainPage';
-import FoodPage from './FoodPage';
-import ProgressPage from './ProgressPage';
-import ChatPage from './ChatPage';
-import PinScreen from './PinScreen';
+import { motion } from 'framer-motion';
+import { Home, Dumbbell, Apple, BarChart2, MessageSquare, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ClientDashboard = () => {
   const { clientId } = useParams();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [activePage, setActivePage] = useState('Home');
-  const [clientData, setClientData] = useState({
-    client: null,
-    program: null,
-    workoutHistory: [],
-    nutritionLogsToday: [],
-    bodyStats: [],
-    progressPhotos: [],
-    messages: [],
-    analytics: null,
-    assignedMeals: [],
-    groups: []
-  });
+  const navigate = useNavigate();
 
-  const { showError, showSuccess } = useNotification();
-
-  const loadClientData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const [
-        client,
-        program,
-        history,
-        nutritionLogs,
-        stats,
-        photos,
-        messages,
-        analytics,
-        meals,
-        groups
-      ] = await Promise.all([
-        ApiClient.getClient(clientId),
-        ApiClient.getActiveProgram(clientId),
-        ApiClient.getWorkoutHistory(clientId),
-        ApiClient.getNutritionLogs(clientId, today),
-        ApiClient.getBodyStats(clientId),
-        ApiClient.getProgressPhotos(clientId),
-        ApiClient.getMessages(clientId),
-        ApiClient.getClientAnalytics(clientId),
-        ApiClient.getClientMealPlan(clientId),
-        ApiClient.getClientGroups(clientId),
-      ]);
-
-      setClientData({
-        client,
-        program,
-        workoutHistory: history,
-        nutritionLogsToday: nutritionLogs,
-        bodyStats: stats,
-        progressPhotos: photos,
-        messages,
-        analytics,
-        assignedMeals: meals,
-        groups
-      });
-    } catch (error) {
-      console.error("Failed to load client data:", error);
-      showError("Failed to load client data", "Error");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [clientId, showError]);
-
-  const handlePinSubmit = async (pin) => {
-    try {
-      const result = await ApiClient.verifyClientPin(clientId, pin);
-      if (result.success) {
-        setIsAuthenticated(true);
-        showSuccess("Welcome back!", "Authentication Successful");
-      } else {
-        showError("Invalid PIN. Please try again.", "Authentication Failed");
-        return false;
-      }
-    } catch (error) {
-      console.error("PIN verification failed:", error);
-      showError("Authentication failed. Please try again.", "Error");
-      return false;
-    }
-    return true;
+  const pages = ['Home', 'Train', 'Food', 'Progress', 'Chat'];
+  
+  const pageIcons = {
+    Home: Home,
+    Train: Dumbbell,
+    Food: Apple,
+    Progress: BarChart2,
+    Chat: MessageSquare
   };
 
-  useEffect(() => {
-    // Check if trainer is accessing (bypass PIN)
-    const isTrainer = localStorage.getItem('isTrainer') === 'true';
-    if (isTrainer) {
-      setIsAuthenticated(true);
+  const renderPage = () => {
+    switch (activePage) {
+      case 'Home':
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-primary mb-4">Welcome to Your Dashboard</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="card-premium p-6">
+                <h3 className="text-lg font-semibold mb-2">Today's Workout</h3>
+                <p className="text-secondary">Upper Body Strength Training</p>
+                <button className="btn-premium btn-premium--primary mt-4">Start Workout</button>
+              </div>
+              <div className="card-premium p-6">
+                <h3 className="text-lg font-semibold mb-2">Nutrition Goals</h3>
+                <p className="text-secondary">2,200 calories remaining</p>
+                <button className="btn-premium btn-premium--secondary mt-4">Log Food</button>
+              </div>
+            </div>
+          </div>
+        );
+      case 'Train':
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-primary mb-4">Workout Library</h1>
+            <div className="space-y-4">
+              {['Upper Body', 'Lower Body', 'Cardio', 'Flexibility'].map((workout) => (
+                <div key={workout} className="card-premium p-4 hover-lift cursor-pointer">
+                  <h3 className="font-semibold">{workout}</h3>
+                  <p className="text-secondary text-sm">45 minutes • Intermediate</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'Food':
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-primary mb-4">Nutrition Tracking</h1>
+            <div className="card-premium p-6">
+              <h3 className="text-lg font-semibold mb-4">Today's Intake</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Calories</span>
+                  <span>1,800 / 2,200</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Protein</span>
+                  <span>120g / 150g</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Carbs</span>
+                  <span>180g / 220g</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'Progress':
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-primary mb-4">Progress Tracking</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="card-premium p-6">
+                <h3 className="text-lg font-semibold mb-2">Weight Progress</h3>
+                <p className="text-3xl font-bold text-brand-600">165 lbs</p>
+                <p className="text-sm text-success-600">-5 lbs this month</p>
+              </div>
+              <div className="card-premium p-6">
+                <h3 className="text-lg font-semibold mb-2">Workouts Completed</h3>
+                <p className="text-3xl font-bold text-brand-600">24</p>
+                <p className="text-sm text-success-600">+6 from last month</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'Chat':
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-primary mb-4">Messages</h1>
+            <div className="card-premium p-6">
+              <div className="space-y-4">
+                <div className="bg-brand-50 p-3 rounded-lg">
+                  <p className="text-sm font-semibold">Trainer</p>
+                  <p className="text-sm">Great job on today's workout! Keep it up!</p>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg ml-8">
+                  <p className="text-sm font-semibold">You</p>
+                  <p className="text-sm">Thank you! Ready for tomorrow's session.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return <div>Page not found</div>;
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadClientData();
-    }
-  }, [isAuthenticated, loadClientData]);
-
-  if (!isAuthenticated) {
-    return <PinScreen onPinSubmit={handlePinSubmit} />;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-bg to-accent-bg flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
+  return (
+    <div className="app-layout min-h-screen bg-surface-background">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 p-4 flex items-center">
+        <button 
+          onClick={() => navigate('/trainer')}
+          className="btn-premium btn-premium--ghost btn-premium--sm mr-4"
         >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 border-3 border-brand-primary border-t-transparent rounded-full mx-auto mb-4"
-          />
-          <p className="text-text-secondary">Loading your fitness journey...</p>
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <h1 className="text-lg font-semibold">Client Dashboard</h1>
+        <span className="text-sm text-secondary ml-2">ID: {clientId}</span>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 pb-20">
+        <motion.div
+          key={activePage}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          {renderPage()}
         </motion.div>
       </div>
-    );
-  }
-
-  const pages = {
-    Home: <HomePage 
-      client={clientData.client} 
-      sharedData={clientData} 
-      setActivePage={setActivePage}
-      onDataUpdate={loadClientData}
-    />,
-    Train: <TrainPage 
-      client={clientData.client} 
-      sharedData={clientData} 
-      setActivePage={setActivePage}
-      onDataUpdate={loadClientData}
-    />,
-    Food: <FoodPage 
-      client={clientData.client} 
-      sharedData={clientData} 
-      setActivePage={setActivePage}
-      onDataUpdate={loadClientData}
-    />,
-    Progress: <ProgressPage 
-      client={clientData.client} 
-      sharedData={clientData} 
-      setActivePage={setActivePage}
-      onDataUpdate={loadClientData}
-    />,
-    Chat: <ChatPage 
-      client={clientData.client} 
-      sharedData={clientData} 
-      setActivePage={setActivePage}
-      onDataUpdate={loadClientData}
-    />,
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-bg to-accent-bg flex flex-col">
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activePage}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="h-full"
-          >
-            {pages[activePage]}
-          </motion.div>
-        </AnimatePresence>
-      </main>
 
       {/* Bottom Navigation */}
-      <motion.nav
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-        className="fixed bottom-0 left-0 right-0 z-50"
+      <motion.nav 
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ delay: 0.2 }}
       >
-        <div className="glass-card rounded-none rounded-t-3xl border-b-0 p-4">
-          <div className="flex items-center justify-around max-w-md mx-auto">
-            <NavItem
-              icon={Home}
-              label="Home"
-              isActive={activePage === 'Home'}
-              onClick={() => setActivePage('Home')}
-            />
-            <NavItem
-              icon={Dumbbell}
-              label="Train"
-              isActive={activePage === 'Train'}
-              onClick={() => setActivePage('Train')}
-            />
-            <NavItem
-              icon={Apple}
-              label="Food"
-              isActive={activePage === 'Food'}
-              onClick={() => setActivePage('Food')}
-            />
-            <NavItem
-              icon={BarChart2}
-              label="Progress"
-              isActive={activePage === 'Progress'}
-              onClick={() => setActivePage('Progress')}
-            />
-            <NavItem
-              icon={MessageSquare}
-              label="Chat"
-              isActive={activePage === 'Chat'}
-              onClick={() => setActivePage('Chat')}
-            />
-          </div>
+        <div className="flex justify-around max-w-md mx-auto">
+          {pages.map((page) => {
+            const Icon = pageIcons[page];
+            const isActive = activePage === page;
+            
+            return (
+              <button
+                key={page}
+                onClick={() => setActivePage(page)}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${
+                  isActive 
+                    ? 'bg-brand-100 text-brand-600' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-xs font-medium">{page}</span>
+              </button>
+            );
+          })}
         </div>
       </motion.nav>
-
-      {/* Bottom padding to account for fixed navigation */}
-      <div className="h-20" />
     </div>
-  );
-};
-
-// Navigation Item Component
-const NavItem = ({ icon: Icon, label, isActive, onClick }) => {
-  return (
-    <motion.button
-      onClick={onClick}
-      className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200 ${
-        isActive
-          ? 'text-brand-primary'
-          : 'text-text-muted hover:text-text-primary'
-      }`}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      <motion.div
-        className={`p-2 rounded-xl transition-all duration-200 ${
-          isActive
-            ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg'
-            : 'hover:bg-hover-bg'
-        }`}
-        animate={isActive ? { scale: [1, 1.1, 1] } : {}}
-        transition={{ duration: 0.3 }}
-      >
-        <Icon className="w-5 h-5" />
-      </motion.div>
-      <span className={`text-xs font-medium ${
-        isActive ? 'text-brand-primary' : 'text-text-muted'
-      }`}>
-        {label}
-      </span>
-      
-      {/* Active indicator */}
-      {isActive && (
-        <motion.div
-          layoutId="activeTab"
-          className="absolute -top-1 w-1 h-1 bg-brand-primary rounded-full"
-          initial={false}
-        />
-      )}
-    </motion.button>
   );
 };
 
