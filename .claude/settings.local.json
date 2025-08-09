@@ -12,7 +12,8 @@
       "mcp__filesystem__read_multiple_files",
       "Bash(flask db:*)",
       "Bash(rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
