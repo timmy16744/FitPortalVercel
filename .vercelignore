@@ -1,0 +1,3 @@
+# Don't ignore backend files - we need them for the API
+!backend/
+!backend/**/*
