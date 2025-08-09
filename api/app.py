@@ -313,12 +313,5 @@ def create_app():
 # Create the Flask app
 app = create_app()
 
-# Vercel handler
-def handler(request):
-    """Main handler for Vercel"""
-    with app.request_context(request.environ):
-        try:
-            response = app.full_dispatch_request()
-            return response
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+# For Vercel, we need to export the app directly
+# Vercel will handle the WSGI interface
